@@ -1,5 +1,7 @@
 const express = require('express')
 const mysql = require("mysql")
+const fs = require('fs');
+const { dirname } = require('path');
 const app = express()
 
 const db = mysql.createConnection({
@@ -14,12 +16,24 @@ db.connect(err => {
   if(err) {
     console.log("Error connection to Data Base");
   }
-
-  console.log("Data Base connected");
+  else
+  {
+    console.log("Data Base connected");
+  }
 });
 
 app.get('/', (req, res) => {
-  res.send('hello world')
-})
+
+  fs.readFile(__dirname + "/../views/index.html", function (err, html) {
+    if (err) {
+        throw err; 
+    }      
+
+    res.writeHeader(200, {"Content-Type": "text/html"});  
+    res.write(html);  
+    res.end();  
+  });
+
+});
 
 app.listen(80);

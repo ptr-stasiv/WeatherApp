@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weather App</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f0f0f0;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      width: 80%;
+      margin: 20px auto;
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 7vh;
+    }
+
+    .weather-info {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .weather-item {
+      background-color: #f8f8f8;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    .weather-item h2 {
+      margin-top: 0;
+      color: #555;
+    }
+
+    .weather-item p {
+      margin: 5px 0;
+      color: #777;
+    }
+
+    .weather-item i {
+      font-size: 32px;
+      color: #007bff;
+    }
+
+    .calendar {
+      margin-top: 10px;
+      font-size: 14px;
+      color: #555;
+    }
+
+    #main-calendar {
+        margin-top: 5vh;
+    }
+
+    .timeline {
+      list-style: none;
+      padding: 0;
+      text-align: center;
+    }
+    .timeline li {
+      margin-bottom: 10px;
+    }
+    .timeline li button {
+      padding: 10px 20px;
+      border: 1px solid #ccc;
+      background-color: #fff;
+      cursor: pointer;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    .timeline li button:hover {
+      background-color: #e0e0e0;
+    }
+    
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Weather Information</h1>
+    <div class="weather-info">
+      <div class="weather-item">
+        <i class="fas fa-thermometer-half"></i>
+        <h2>Air Temperature</h2>
+        <p>22°C</p>
+      </div>
+      <div class="weather-item">
+        <i class="fas fa-thermometer-quarter"></i>
+        <h2>Ground Temperature</h2>
+        <p>18°C</p>
+      </div>
+      <div class="weather-item">
+        <i class="fas fa-tachometer-alt"></i>
+        <h2>Pressure</h2>
+        <p>1013 hPa</p>
+      </div>
+      <div class="weather-item">
+        <i class="fas fa-tint"></i>
+        <h2>Humidity</h2>
+        <p>65%</p>
+      </div>
+      <div class="weather-item">
+        <i class="fas fa-wind"></i>
+        <h2>Wind Velocity</h2>
+        <p>12 km/h</p>
+      </div>
+    </div>
+
+    <input type="date" id="main-calendar" class="calendar">
+
+    <ul class="timeline">
+        <li><button>8:00 AM</button></li>
+        <li><button>10:00 AM</button></li>
+        <li><button>12:00 PM</button></li>
+        <li><button>2:00 PM</button></li>
+        <li><button>4:00 PM</button></li>
+        <li><button>6:00 PM</button></li>
+        <li><button>8:00 PM</button></li>
+        <li><button>10:00 PM</button></li>
+      </ul>
+  </div>
+</body>
+</html>
