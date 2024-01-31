@@ -87,50 +87,170 @@
     }
     
   </style>
+
+  <script>
+    class HourData {
+      constructor(measure_time, temperature_air, temperature_ground, pressure, humidity, wind) {
+        this.measure_time = measure_time;
+        this.temperature_air = temperature_air;
+        this.temperature_ground = temperature_ground;
+        this.pressure = pressure;
+        this.humidity = humidity;
+        this.wind = wind;
+      }
+    }
+
+    CurrentDayData = [];
+
+    function selectHour(data) {
+      document.getElementById('currentTime').innerHTML = data.measure_time;
+      document.getElementById('at').innerHTML = data.temperature_air + '°C';
+      document.getElementById('gt').innerHTML = data.temperature_ground + '°C';
+      document.getElementById('pressure').innerHTML = data.pressure + 'hPa';
+      document.getElementById('humidity').innerHTML = data.humidity + '%';
+      document.getElementById('wind').innerHTML = data.wind + 'km/h';
+
+    }
+
+    function resetData() {
+      document.getElementById('currentTime').innerHTML = 'Time not selected';
+      document.getElementById('at').innerHTML = '';
+      document.getElementById('gt').innerHTML = '';
+      document.getElementById('pressure').innerHTML = '';
+      document.getElementById('humidity').innerHTML = '';
+      document.getElementById('wind').innerHTML = '';
+    }
+
+    function fetchNewHoursData(date) {
+      datetime = document.getElementById('main-calendar').value;
+
+      fetch(`/getHoursDate/${datetime}`)
+            .then(response => response.json())
+            .then(data => {
+                CurrentDayData = [];
+
+                for(var i = 0; i < data.length; ++i) {
+                  CurrentDayData.push(new HourData(data[i]["measure_time"], data[i]["temperature_air"], data[i]["temperature_ground"], data[i]["pressure"], data[i]["humidity"], data[i]["wind"]));
+                }
+
+                timeline = document.getElementById('timelineId');
+                timeline.innerHTML = '';
+
+                for(var i = 0; i < CurrentDayData.length; ++i) {
+                  timeline.innerHTML += `<li><button onClick='selectHour(CurrentDayData[${i}])'>${CurrentDayData[i].measure_time}</button></li>`;
+                }
+
+                if(CurrentDayData.length > 0) {
+                  selectHour(CurrentDayData[0]);
+                }
+                else {
+                  resetData();
+                }
+            })
+            .catch(error => console.error('Error fetching data:', error));
+    }
+
+    function onCalendarChanged(newDate) {
+      fetchNewHoursData(newDate.target.value);
+    }
+
+    window.onload = (event) => {
+      document.getElementById('main-calendar').valueAsDate = new Date();
+      fetchNewHoursData(document.getElementById('main-calendar').value)
+    };
+  </script>
 </head>
 <body>
+
+  <style>
+    ul {
+        list-style-type: none;
+        padding: 0;
+    }
+    li {
+        display: inline-block;
+        position: relative;
+    }
+    a {
+        display: block;
+        padding: 10px 20px;
+        text-decoration: none;
+        color: #333;
+        background-color: #f4f4f4;
+    }
+    ul ul {
+        display: none;
+        position: absolute;
+        background-color: #fff;
+        border: 1px solid #ccc;
+        z-index: 1;
+    }
+    li:hover > ul {
+        display: block;
+    }
+    ul ul li {
+        display: block;
+        width: 100%;
+    }
+</style>
+  <ul>
+    <li>
+        <a href="#">File</a>
+        <ul>
+            <li><a href="#">Save</a></li>
+        </ul>
+    </li>
+    <li>
+        <a href="#">View</a>
+        <ul>
+            <li><a href="#">Display data</a></li>
+            <li><a href="#">Filter</a></li>
+        </ul>
+    </li>
+    <li>
+        <a href="#">Help</a>
+        <ul>
+            <li><a href="#">FAQ</a></li>
+        </ul>
+    </li>
+    <li><a href="#">About</a></li>
+</ul>
+
   <div class="container">
     <h1>Weather Information</h1>
+    <h2 id="currentTime">Time</h2>
     <div class="weather-info">
       <div class="weather-item">
         <i class="fas fa-thermometer-half"></i>
         <h2>Air Temperature</h2>
-        <p>22°C</p>
+        <p id = 'at'></p>
       </div>
       <div class="weather-item">
         <i class="fas fa-thermometer-quarter"></i>
         <h2>Ground Temperature</h2>
-        <p>18°C</p>
+        <p id = 'gt'></p>
       </div>
       <div class="weather-item">
         <i class="fas fa-tachometer-alt"></i>
         <h2>Pressure</h2>
-        <p>1013 hPa</p>
+        <p id = 'pressure'></p>
       </div>
       <div class="weather-item">
         <i class="fas fa-tint"></i>
         <h2>Humidity</h2>
-        <p>65%</p>
+        <p id = 'humidity'></p>
       </div>
       <div class="weather-item">
         <i class="fas fa-wind"></i>
         <h2>Wind Velocity</h2>
-        <p>12 km/h</p>
+        <p id = 'wind'></p>
       </div>
     </div>
 
-    <input type="date" id="main-calendar" class="calendar">
+    <input type="date" id="main-calendar" class="calendar" onchange="onCalendarChanged(event)">
 
-    <ul class="timeline">
-        <li><button>8:00 AM</button></li>
-        <li><button>10:00 AM</button></li>
-        <li><button>12:00 PM</button></li>
-        <li><button>2:00 PM</button></li>
-        <li><button>4:00 PM</button></li>
-        <li><button>6:00 PM</button></li>
-        <li><button>8:00 PM</button></li>
-        <li><button>10:00 PM</button></li>
-      </ul>
+    <ul class="timeline" id="timelineId">
+    </ul>
   </div>
 </body>
 </html>

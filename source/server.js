@@ -5,12 +5,6 @@ const { dirname } = require('path');
 const MOMENT = require( 'moment' );
 const app = express()
 
-function randomInRange(min, max) {  
-  return Math.floor(
-    Math.random() * (max - min) + min
-  )
-}
-
 const pool = mysql.createPool({
   host: "database-meteo.cjaoo4yk2a0q.eu-central-1.rds.amazonaws.com",
   port: "3306",
@@ -22,22 +16,34 @@ const pool = mysql.createPool({
   queueLimit: 0
 });
 
-function executeQuery(sql, values = []) {
-  return new Promise((resolve, reject) => {
-      pool.getConnection((err, connection) => {
-          if (err) {
-              return reject(err);
-          }
-          connection.query(sql, values, (err, results) => {
-              connection.release();
-              if (err) {
-                  return reject(err);
-              }
-              resolve(results);
-          });
-      });
+function sendHoursDataForDay(res, datetime) {
+  pool.getConnection((err, connection) => {
+    connection.query('SELECT id FROM meteodb.measurements_days WHERE measure_day = ?', [datetime], (err, results) => {
+      
+      if(results[0])
+      {
+        dayId = results[0]['id'];
+
+        connection.query('SELECT * FROM meteodb.measurements_hours WHERE day_id = ?', [dayId], (err, results) => {
+          if(results.length > 0) {
+              res.json(results);
+            }
+        });
+      }
+      else
+      {
+        res.json([]);
+      }
+
+      connection.release();
+    });
   });
 }
+
+app.get('/getHoursDate/:day', (req, res) => {
+  datetime = req.params.day;
+  sendHoursDataForDay(res, datetime);
+});
 
 app.get('/', (req, res) => {
 
@@ -52,6 +58,12 @@ app.get('/', (req, res) => {
   });
 
 });
+
+function randomInRange(min, max) {  
+  return Math.floor(
+    Math.random() * (max - min) + min
+  )
+}
 
 function insertPerTimeData(dayId) {
   const time = MOMENT().format("HH:mm:ss"); 
@@ -108,7 +120,6 @@ async function generateWeatherData() {
   }
 }
 
-generateWeatherData();
 setInterval(generateWeatherData, 1800 * 1000);
 
 app.listen(80);
