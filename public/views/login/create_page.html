@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Account - WeatherMonitor</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            width: 360px;
+            background-color: #fff;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            margin: 20px auto;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #333;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #666;
+        }
+
+        .input-group input[type="text"],
+        .input-group input[type="email"],
+        .input-group input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            color: #fff;
+            font-size: 16px;
+        }
+
+        .create-account-btn {
+            background-color: #007bff;
+        }
+
+        .extra-options {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .extra-options a {
+            color: #007bff;
+            text-decoration: none;
+            margin-right: 10px;
+        }
+
+        .extra-options a:hover {
+            text-decoration: underline;
+        }
+
+        #backVideo {
+            position: fixed;
+            right: 0;
+            bottom: 0;
+            min-width: 100%;
+            min-height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        #errText {
+            color: red;
+        }
+    </style>
+
+    <script>    
+        window.onload = (event) => {
+            document.getElementById("backVideo").playbackRate = 0.5;
+            document.getElementById("backVideo").play();
+        };
+
+        function setErrorText(text) {
+            document.getElementById("errText").innerHTML = "*" + text;
+        }
+
+        function resetErrorText(text) {
+            document.getElementById("errText").innerHTML = "";
+        }
+
+        function onSubmit() {
+            const firstName = document.getElementById('first-name').value;
+            const lastName = document.getElementById('last-name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+
+            fetch('/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        "first-name": firstName,
+                        "last-name": lastName,
+                        "email": email,
+                        "password": password,
+                        "confirm-password": confirmPassword
+                    })
+                })
+                .then((response) => {
+                    if(!response.ok) {
+                        response.json().then((data) => {
+                        setErrorText(data["message"]);});
+                    }
+                    else {
+                        resetErrorText();
+                        document.getElementById('first-name').value = "";
+                        document.getElementById('last-name').value = "";
+                        document.getElementById('email').value = "";
+                        document.getElementById('password').value = "";
+                        document.getElementById('confirm-password').value = "";
+                    }
+                });
+            }
+    </script>
+</head>
+<body>
+    <video muted loop id="backVideo">
+        <source src="/public/assets/back_weather.mp4" type="video/mp4">
+    </video>
+
+    <div class="container">
+        <h2>Create Account</h2>
+        <form id="account-form" onsubmit="event.preventDefault(); onSubmit()">
+            <div class="input-group">
+                <label for="first-name">First Name:</label>
+                <input type="text" id="first-name" name="first-name" required>
+            </div>
+            <div class="input-group">
+                <label for="last-name">Last Name:</label>
+                <input type="text" id="last-name" name="last-name" required>
+            </div>
+            <div class="input-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+            <div class="input-group">
+                <label for="password">Password:</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <div class="input-group">
+                <label for="confirm-password">Confirm Password:</label>
+                <input type="password" id="confirm-password" name="confirm-password" required>
+            </div>
+            
+            <p id="errText"></p>
+
+            <div class="input-group">
+                <button type="submit" class="btn create-account-btn">Create Account</button>
+            </div>
+        </form>
+        <div class="extra-options">
+            <a href="/public/views/login/login_page.html" class="login">Login</a>
+        </div>
+    </div>
+</body>
+</html>

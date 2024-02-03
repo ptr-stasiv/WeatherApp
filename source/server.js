@@ -1,9 +1,22 @@
 const express = require('express')
 const mysql = require("mysql")
 const fs = require('fs');
-const { dirname } = require('path');
+const path = require('path');
 const MOMENT = require( 'moment' );
 const app = express()
+const bcrypt = require("bcrypt")
+const ejs = require('ejs');
+
+app.set('view engine', 'ejs');
+
+app.use(express.urlencoded());
+app.use(express.json());
+
+const PUBLIC_DIRECTORY = path.join(__dirname, '../public');
+
+app.use('/public', express.static(PUBLIC_DIRECTORY));
+
+const saltRounds = 10
 
 const pool = mysql.createPool({
   host: "database-meteo.cjaoo4yk2a0q.eu-central-1.rds.amazonaws.com",
@@ -40,6 +53,90 @@ function sendHoursDataForDay(res, datetime) {
   });
 }
 
+app.post("/create", (req, res) => {
+  firstName = req.body['first-name'];
+  lastName = req.body['last-name'];
+  email = req.body['email'];
+  password = req.body['password'];
+  confirmPassword = req.body['confirm-password'];
+
+  if(password.length < 4) {
+    return res.status(400).json({ message: "Password less than 4 characters" })
+  }
+
+  if(confirmPassword != password){
+    return res.status(400).json({ message: "Confirm password is not right" })
+  }
+
+  pool.getConnection((err, connection) => {
+    connection.query('SELECT id FROM meteodb.users WHERE email = ?', 
+    [email], (err, results) => {
+      if(results.length > 0) {
+        connection.release();
+        return res.status(400).json({ message: "This email is already registered" })
+      }
+      else
+      {
+        bcrypt
+        .genSalt(saltRounds)
+        .then(salt => {
+          return bcrypt.hash(password, salt)
+        })
+        .then(hash => {
+          connection.query('INSERT INTO meteodb.users (name, email, password) VALUES (?, ?, ?)', 
+          [firstName + " " + lastName, email, hash], (err, results) => {
+            connection.release();
+            if(!err)
+            {
+              res.status(200).json({ message: "Account created" })
+            }
+          });
+        })
+        .catch(err => console.error(err.message))
+      }
+    });
+  });
+})
+
+app.post("/login", (req, res) => {
+  email = req.body['email'];
+  password = req.body['password'];
+
+  pool.getConnection((err, connection) => {
+    connection.query('SELECT password FROM meteodb.users WHERE email = ?', 
+    [email], (err, results) => {
+      connection.release();
+
+      if(!results[0]) {
+        return res.status(400).json({ message: "This email is not yet registered" })
+      }
+
+      bcrypt.compare(password, results[0].password, (err, val) => {
+        if(val)
+        {
+          return res.status(200).json({ message: "Account created" });
+        }
+        else
+        {
+          return res.status(400).json({ message: "Password or login is invalid" });
+        }
+      });
+    });
+  });
+});
+
+app.get('/main', (req, res) => {
+  fs.readFile("public/views/index.html", function (err, html) {
+    if (err) {
+        throw err; 
+    }      
+
+    res.writeHeader(200, {"Content-Type": "text/html"});  
+    res.write(html);  
+    res.end();  
+  });
+});
+
 app.get('/getHoursDate/:day', (req, res) => {
   datetime = req.params.day;
   sendHoursDataForDay(res, datetime);
@@ -47,7 +144,7 @@ app.get('/getHoursDate/:day', (req, res) => {
 
 app.get('/', (req, res) => {
 
-  fs.readFile(__dirname + "/../views/index.html", function (err, html) {
+  fs.readFile("public/views/login/login_page.html", function (err, html) {
     if (err) {
         throw err; 
     }      
