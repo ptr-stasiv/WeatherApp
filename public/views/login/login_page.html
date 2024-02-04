@@ -128,17 +128,17 @@
                     })
                 })
                 .then((response) => {
-                    if(!response.ok)
-                    {
-                        response.json().then((data) => {
-                        setErrorText(data["message"]);});
-                    }
-                    else
-                    {
-                        setTimeout(function() {
-                             window.location.href = "/main";
-                        }, 500);
-                    }
+                    response.json().then((data) => {
+                        if(!response.ok) {
+                            setErrorText(data["message"]);
+                        }
+                        else
+                        {
+                            setTimeout(function() {
+                             window.location.href = data["message"];
+                            }, 100);
+                        }
+                    });
                 });
         }
     </script>

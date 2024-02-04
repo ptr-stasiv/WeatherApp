@@ -6,6 +6,13 @@ const MOMENT = require( 'moment' );
 const app = express()
 const bcrypt = require("bcrypt")
 const ejs = require('ejs');
+const session = require('express-session');
+
+app.use(session({
+  secret: 'secret-key',
+  resave: false,
+  saveUninitialized: false,
+}));
 
 app.set('view engine', 'ejs');
 
@@ -98,6 +105,16 @@ app.post("/create", (req, res) => {
   });
 })
 
+app.post("/logout", (req, res) => { 
+  req.session.destroy((err) => {
+    if (err) {
+      console.log(err);
+    } else {
+      return res.redirect('/');
+    }
+  });
+});
+
 app.post("/login", (req, res) => {
   email = req.body['email'];
   password = req.body['password'];
@@ -114,7 +131,8 @@ app.post("/login", (req, res) => {
       bcrypt.compare(password, results[0].password, (err, val) => {
         if(val)
         {
-          return res.status(200).json({ message: "Account created" });
+          req.session.isLoggedIn = true;
+          return res.status(200).json({ message: "/main" });
         }
         else
         {
@@ -125,7 +143,17 @@ app.post("/login", (req, res) => {
   });
 });
 
+app.get('/getHoursDate/:day', (req, res) => {
+  datetime = req.params.day;
+  sendHoursDataForDay(res, datetime);
+});
+
 app.get('/main', (req, res) => {
+
+  if(!req.session.isLoggedIn) {
+    return res.redirect('/login');
+  }
+
   fs.readFile("public/views/index.html", function (err, html) {
     if (err) {
         throw err; 
@@ -137,13 +165,7 @@ app.get('/main', (req, res) => {
   });
 });
 
-app.get('/getHoursDate/:day', (req, res) => {
-  datetime = req.params.day;
-  sendHoursDataForDay(res, datetime);
-});
-
-app.get('/', (req, res) => {
-
+app.get('/login', (req, res) => {
   fs.readFile("public/views/login/login_page.html", function (err, html) {
     if (err) {
         throw err; 
@@ -153,7 +175,10 @@ app.get('/', (req, res) => {
     res.write(html);  
     res.end();  
   });
+});
 
+app.get('/', (req, res) => {
+  res.redirect('/main');
 });
 
 function randomInRange(min, max) {  

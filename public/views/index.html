@@ -150,6 +150,17 @@
             .catch(error => console.error('Error fetching data:', error));
     }
 
+    function onLogOut() {
+      fetch('/logout', {
+              method: 'POST',
+            })
+            .then((response) => {
+              setTimeout(function() {
+                      window.location.href = "/";
+                      }, 100);
+            });
+    }
+
     function onCalendarChanged(newDate) {
       fetchNewHoursData(newDate.target.value);
     }
@@ -214,6 +225,8 @@
         </ul>
     </li>
     <li><a href="#">About</a></li>
+
+    <li><button onclick="onLogOut()">Log out</button></li>
 </ul>
 
   <div class="container">
