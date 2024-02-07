@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Weather App</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -85,7 +86,37 @@
     .timeline li button:hover {
       background-color: #e0e0e0;
     }
+
+    .selectedButton {
+      background-color: rgb(97, 163, 210) !important;
+    }
     
+    .selectedEndButton {
+      background-color: rgb(52, 128, 227) !important;
+    }
+
+    .rangeButton {
+      background-color: rgb(168, 179, 196) !important;
+    }
+
+    .charts-container {
+      max-width: 100%;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .row {
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    canvas {
+      width: 100%;
+      height: 300px;
+    }
+
   </style>
 
   <script>
@@ -102,7 +133,256 @@
 
     CurrentDayData = [];
 
-    function selectHour(data) {
+    startHourID = -1;
+    endHourID = -1;
+
+    RangeData = [];
+
+    var temperatureChart, groundTemperatureChart, pressureChart, humidityChart, windChart;
+
+    function drawTemperatureChart() {
+      var ctx = document.getElementById('temperatureChart').getContext('2d');
+      var labels = RangeData.map(function(hourData) {
+        return hourData.measure_time;
+      });
+      var temperatures = RangeData.map(function(hourData) {
+        return hourData.temperature_air;
+      });
+
+      if (temperatureChart) {
+        temperatureChart.destroy();
+      }
+
+      temperatureChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Air Temperature',
+            data: temperatures,
+            borderColor: 'rgb(255, 99, 132)',
+            borderWidth: 2,
+            fill: false
+          }]
+        },
+        options: {
+          scales: {
+            x: {
+              display: true,
+              title: {
+                display: true,
+                text: 'Time'
+              }
+            },
+            y: {
+              display: true,
+              title: {
+                display: true,
+                text: 'Temperature (°C)'
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function drawGroundTemperatureChart() {
+      var ctx = document.getElementById('groundTemperatureChart').getContext('2d');
+      var labels = RangeData.map(function(hourData) {
+        return hourData.measure_time;
+      });
+      var groundTemperatures = RangeData.map(function(hourData) {
+        return hourData.temperature_ground;
+      });
+
+      if (groundTemperatureChart) {
+        groundTemperatureChart.destroy();
+      }
+
+      groundTemperatureChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Ground Temperature',
+            data: groundTemperatures,
+            borderColor: 'rgb(54, 162, 235)',
+            borderWidth: 2,
+            fill: false
+          }]
+        },
+        options: {
+          scales: {
+            x: {
+              display: true,
+              title: {
+                display: true,
+                text: 'Time'
+              }
+            },
+            y: {
+              display: true,
+              title: {
+                display: true,
+                text: 'Temperature (°C)'
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function drawPressureChart() {
+      var ctx = document.getElementById('pressureChart').getContext('2d');
+      var labels = RangeData.map(function(hourData) {
+        return hourData.measure_time;
+      });
+      var pressures = RangeData.map(function(hourData) {
+        return hourData.pressure;
+      });
+
+      if (pressureChart) {
+        pressureChart.destroy();
+      }
+
+      pressureChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Pressure',
+            data: pressures,
+            borderColor: 'rgb(255, 206, 86)',
+            borderWidth: 2,
+            fill: false
+          }]
+        },
+        options: {
+          scales: {
+            x: {
+              display: true,
+              title: {
+                display: true,
+                text: 'Time'
+              }
+            },
+            y: {
+              display: true,
+              title: {
+                display: true,
+                text: 'Pressure (hPa)'
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function drawHumidityChart() {
+      var ctx = document.getElementById('humidityChart').getContext('2d');
+      var labels = RangeData.map(function(hourData) {
+        return hourData.measure_time;
+      });
+      var humidities = RangeData.map(function(hourData) {
+        return hourData.humidity;
+      });
+
+      if (humidityChart) {
+        humidityChart.destroy();
+      }
+
+      humidityChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Humidity',
+            data: humidities,
+            borderColor: 'rgb(75, 192, 192)',
+            borderWidth: 2,
+            fill: false
+          }]
+        },
+        options: {
+          scales: {
+            x: {
+              display: true,
+              title: {
+                display: true,
+                text: 'Time'
+              }
+            },
+            y: {
+              display: true,
+              title: {
+                display: true,
+                text: 'Humidity (%)'
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function drawWindChart() {
+      var ctx = document.getElementById('windChart').getContext('2d');
+      var labels = RangeData.map(function(hourData) {
+        return hourData.measure_time;
+      });
+      var winds = RangeData.map(function(hourData) {
+        return hourData.wind;
+      });
+
+      if (windChart) {
+        windChart.destroy();
+      }
+
+      windChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Wind',
+            data: winds,
+            borderColor: 'rgb(153, 102, 255)',
+            borderWidth: 2,
+            fill: false
+          }]
+        },
+        options: {
+          scales: {
+            x: {
+              display: true,
+              title: {
+                display: true,
+                text: 'Time'
+              }
+            },
+            y: {
+              display: true,
+              title: {
+                display: true,
+                text: 'Wind (km/h)'
+              }
+            }
+          }
+        }
+      });
+    }
+
+    function setVisibilityChartContainer(visible) {
+      var chartContainer = document.querySelector('.charts-container');
+
+      if (visible) {
+        chartContainer.style.display = 'grid';
+      } else {
+        chartContainer.style.display = 'none';
+      }
+    }
+
+    function selectHour(id, event ) {
+      data = CurrentDayData[id];
+
       document.getElementById('currentTime').innerHTML = data.measure_time;
       document.getElementById('at').innerHTML = data.temperature_air + '°C';
       document.getElementById('gt').innerHTML = data.temperature_ground + '°C';
@@ -110,9 +390,83 @@
       document.getElementById('humidity').innerHTML = data.humidity + '%';
       document.getElementById('wind').innerHTML = data.wind + 'km/h';
 
+      if(event.detail == 2 && endHourID == -1) {
+        if(startHourID != -1) {
+          buttonStart = document.getElementById('hour' + startHourID);
+          buttonStart.classList.remove("selectedButton");
+        }
+        button = document.getElementById('hour' + id);
+        button.classList.add('selectedButton');
+
+        startHourID = id;
+
+        return;
+      }
+
+      if(startHourID == -1) {
+        button = document.getElementById('hour' + id);
+        button.classList.add('selectedButton');
+
+        startHourID = id;
+
+        setVisibilityChartContainer(false);
+      }
+      else if(endHourID == -1) {
+        if(id <= startHourID) {
+          return;
+        }
+
+        button = document.getElementById('hour' + id);
+        button.classList.add('selectedEndButton');
+
+        endHourID = id;
+
+        RangeData.push(CurrentDayData[startHourID]);
+
+        for(var i = startHourID + 1; i < endHourID; ++i) {
+          button = document.getElementById('hour' + i);
+          button.classList.add('rangeButton');
+
+          RangeData.push(CurrentDayData[i]);
+        }
+
+        RangeData.push(CurrentDayData[endHourID]);
+
+        setVisibilityChartContainer(true);
+
+        drawTemperatureChart();
+        drawGroundTemperatureChart();
+        drawPressureChart();
+        drawHumidityChart();
+        drawWindChart();
+      }
+      else
+      {
+        buttonStart = document.getElementById('hour' + startHourID);
+        buttonEnd = document.getElementById('hour' + endHourID);
+
+        for(var i = startHourID + 1; i < endHourID; ++i) {
+          button = document.getElementById('hour' + i);
+          button.classList.remove('rangeButton');
+        }
+
+        buttonStart.classList.remove("selectedButton");
+        buttonEnd.classList.remove('selectedEndButton');
+
+
+        endHourID = -1;
+
+        startHourID = id;
+        button = document.getElementById('hour' + id);
+        button.classList.add('selectedButton');
+
+        RangeData = [];
+
+        setVisibilityChartContainer(false);
+      }
     }
 
-    function resetData() {
+    function resetData() {      
       document.getElementById('currentTime').innerHTML = 'Time not selected';
       document.getElementById('at').innerHTML = '';
       document.getElementById('gt').innerHTML = '';
@@ -137,11 +491,11 @@
                 timeline.innerHTML = '';
 
                 for(var i = 0; i < CurrentDayData.length; ++i) {
-                  timeline.innerHTML += `<li><button onClick='selectHour(CurrentDayData[${i}])'>${CurrentDayData[i].measure_time}</button></li>`;
+                  timeline.innerHTML += `<li><button id='hour${i}' onClick='selectHour(${i}, event)'>${CurrentDayData[i].measure_time}</button></li>`;
                 }
 
                 if(CurrentDayData.length > 0) {
-                  selectHour(CurrentDayData[0]);
+                  selectHour(0, {});
                 }
                 else {
                   resetData();
@@ -165,9 +519,48 @@
       fetchNewHoursData(newDate.target.value);
     }
 
+    var csvData = [
+      ['Name', 'Age', 'City'],
+      ['John', '30', 'New York'],
+      ['Alice', '25', 'San Francisco'],
+      ['Bob', '35', 'Los Angeles']
+    ];
+
+    function convertRangeDataToCSV(data) {
+        var csvContent = "data:text/csv;charset=utf-8,";
+
+        // Header row
+        csvContent += "Measure Time,Temperature Air,Temperature Ground,Pressure,Humidity,Wind\n";
+
+        // Data rows
+        data.forEach(function(hourData) {
+            csvContent += hourData.measure_time + "," +
+                          hourData.temperature_air + "," +
+                          hourData.temperature_ground + "," +
+                          hourData.pressure + "," +
+                          hourData.humidity + "," +
+                          hourData.wind + "\n";
+        });
+
+        return encodeURI(csvContent);
+    }
+
+    function handleSave() {
+        var encodedUri = convertRangeDataToCSV(CurrentDayData);
+        var selectedDate = document.getElementById('main-calendar').value;
+
+        var link = document.createElement('a');
+        link.setAttribute('href', encodedUri);
+        link.setAttribute('download', `Weather-Monitor-${selectedDate}.csv`);
+        link.click();
+    }
+
     window.onload = (event) => {
       document.getElementById('main-calendar').valueAsDate = new Date();
-      fetchNewHoursData(document.getElementById('main-calendar').value)
+      fetchNewHoursData(document.getElementById('main-calendar').value);
+      setVisibilityChartContainer(false);
+
+      document.getElementById('saveDataLink').addEventListener('click', handleSave);
     };
   </script>
 </head>
@@ -203,31 +596,45 @@
         display: block;
         width: 100%;
     }
+
+    .logout-button {
+      background-color: #7ba0c9;
+      color: white;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s, color 0.3s;
+      position: absolute;
+      top: 20px;
+      right: 20px;
+    }
+
+    .logout-button:hover {
+      background-color: #0056b3;
+    }
 </style>
   <ul>
     <li>
         <a href="#">File</a>
         <ul>
-            <li><a href="#">Save</a></li>
+          <li><a href="#" id="saveDataLink">Save</a></li>
         </ul>
     </li>
     <li>
         <a href="#">View</a>
         <ul>
-            <li><a href="#">Display data</a></li>
-            <li><a href="#">Filter</a></li>
         </ul>
     </li>
     <li>
         <a href="#">Help</a>
         <ul>
-            <li><a href="#">FAQ</a></li>
         </ul>
     </li>
     <li><a href="#">About</a></li>
-
-    <li><button onclick="onLogOut()">Log out</button></li>
 </ul>
+  <button class="logout-button" onclick="onLogOut()">Log out</button>
 
   <div class="container">
     <h1>Weather Information</h1>
@@ -264,6 +671,20 @@
 
     <ul class="timeline" id="timelineId">
     </ul>
+
+    <div class="charts-container">
+      <div class="row">
+        <canvas id="temperatureChart"></canvas>
+        <canvas id="groundTemperatureChart"></canvas>
+      </div>
+      <div class="row">
+        <canvas id="pressureChart"></canvas>
+        <canvas id="humidityChart"></canvas>
+      </div>
+      <div class="row">
+        <canvas id="windChart"></canvas>
+      </div>
+    </div>
   </div>
 </body>
 </html>
